@@ -1,0 +1,37 @@
+http://www.gurux.fi/node/4558:
+
+Primary Module interface Association with Low Level security (Password protected)
+- Client SAP: 18
+- Server SAP: 16
+- Context name: Logical name addressing
+- Mechanism name: Low Level security. Password default is ‘12345’
+- Conformance: GET, Block transfer with GET, SET, ACTION, SELECTIVE ACCESS
+
+Optical interface Association with Low Level security (Password protected)
+- Client SAP: 19 1
+- Server SAP: 16
+- Context name: Logical name addressing
+- Mechanism name: Low Level security. Password default is ‘12345’
+- Conformance: GET, Block transfer with GET, SET, ACTION, SELECTIVE ACCESS
+Association used from Module_Port_2 interface:
+CCC Module interface Association with Low Level security (Password protected):
+- Client SAP: 20 2
+- Server SAP: 16
+- Context name: Logical name addressing
+- Mechanism name: Low Level security. Password default is ‘12345’
+- Conformance: GET, Block transfer with GET, SET, ACTION, SELECTIVE ACCESS
+
+
+http://www.gurux.fi/node/13166
+Payloads: 1010
+Supported Services" tab and check "General Protection".
+
+title: 5858580000000001
+
+Authentication: HighGMac
+ClientAddress: 0x12
+ServerAddress: 0x10
+SystemTitle: 31 32 33 34 35 36 37 38
+
+C3 53 1B 89 BE 13 30 AF 80 B1 C3 D5 62 71 93 E3
+C3531B89BE1330AF80B1C3D5627193E3
