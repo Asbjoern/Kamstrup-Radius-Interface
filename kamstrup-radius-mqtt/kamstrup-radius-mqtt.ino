@@ -1,9 +1,12 @@
 #include "gcm.h"
 #include "mbusparser.h"
 
+const size_t headersize = 11;
+const size_t footersize = 3;
 const uint8_t encryption_key[] =     {0x5A,0xD8,0x41,0x21,0xD9,0xD2,0x0B,0x36,0x4B,0x7A,0x11,0xF3,0xC1,0xB5,0x82,0x7F};
 const uint8_t authentication_key[] = {0xAF,0xB3,0xF9,0x3E,0x3E,0x72,0x04,0xED,0xB3,0xC2,0x7F,0x96,0xDB,0xD5,0x1A,0xE0};
-const uint8_t cipher_text[] = {0xDB,0x08,0x4B,0x41,0x4D,0x45,0x01,0xA4,0xDC,0x52,0x82,0x01,0xD0,0x30,0x00,0x07,0x88,0xE1,0xA0,0x39,0xB2,0xD1,0x4C,0x71,
+uint8_t input[] = {0x7E,0xA1,0xE9,0x41,0x03,0x13,0xC6,0x37,0xE6,0xE7,0x00,
+0xDB,0x08,0x4B,0x41,0x4D,0x45,0x01,0xA4,0xDC,0x52,0x82,0x01,0xD0,0x30,0x00,0x07,0x88,0xE1,0xA0,0x39,0xB2,0xD1,0x4C,0x71,
 0x2D,0xD4,0xD8,0xC8,0x44,0x0D,0x53,0x68,0xE4,0x33,0xBD,0x70,0xB7,0x36,0x81,0xE9,0xA9,0xEF,0xFE,0x38,0xF1,0x75,0xA3,0x7D,0xE9,0xCD,0xE6,0x4E,0x8F,
 0x78,0x0D,0x8F,0x18,0xB4,0x3F,0xC0,0x59,0xD8,0x79,0x02,0xF3,0xD7,0x47,0xB8,0x14,0xBC,0xD0,0x6A,0x47,0x00,0x68,0x78,0x01,0xBD,0x5D,0x06,0x61,0x20,
 0x54,0x50,0x7D,0x44,0xE7,0x66,0x98,0xCC,0x3E,0x35,0xCC,0x9D,0xE6,0x2C,0x28,0x4C,0x0D,0xEE,0xA6,0x35,0xB9,0xBF,0xC5,0x6C,0xE1,0xFE,0x5A,0x3A,0x1E,
@@ -19,59 +22,95 @@ const uint8_t cipher_text[] = {0xDB,0x08,0x4B,0x41,0x4D,0x45,0x01,0xA4,0xDC,0x52
 0x70,0x7F,0x5D,0x4B,0xCD,0xE9,0x4E,0x91,0x35,0x5A,0x81,0x39,0xC3,0xE4,0x1C,0xD5,0xF0,0x88,0x99,0xB6,0x5E,0xE9,0xB5,0x9F,0xC6,0x03,0x72,0xE4,0xF9,
 0x2B,0xC9,0x98,0x26,0xB8,0xC1,0x47,0xF2,0x09,0x5F,0xB3,0x8A,0x89,0x14,0x09,0xAA,0x81,0xE2,0x27,0x07,0x6C,0x21,0xCB,0x7C,0xAF,0x73,0xB3,0xE8,0xA4,
 0xE2,0x56,0xC7,0x0D,0x95,0x47,0xA9,0x14,0xF3,0x9C,0x16,0x93,0x76,0xBF,0x92,0x2B,0x08,0x06,0x4E,0xC4,0xFB,0x31,0xD4,0x4E,0xCD,0x72,0x1D,0x1A,0x15,
-0x1E,0x4E,0x68,0x4F,0x0B,0x26,0x85,0xC4,0xB6,0x9D,0x96,0xF5,0xFB,0x52,0xD0,0xB8,0x12,0x79};
+0x1E,0x4E,0x68,0x4F,0x0B,0x26,0x85,0xC4,0xB6,0x9D,0x96,0xF5,0xFB,0x52,0xD0,0xB8,0x12,0x79,
+0x36,0x24,0x7E};
+
+uint8_t receiveBuffer[1000];
 
 mbedtls_gcm_context m_ctx;
 
 void setup() {
-
-  
   Serial.begin(115200);
   Serial.print("Encryption Key:");
   printHex(encryption_key,sizeof(encryption_key));
   Serial.println();
   
   uint8_t system_title[8];
-  memcpy(system_title, cipher_text+2, 8);
+  memcpy(system_title, input+headersize+2, 8);
   Serial.print("system_title:");
   printHex(system_title,sizeof(system_title));
   Serial.println();
   
   uint8_t initialization_vector[12];
   memcpy(initialization_vector,system_title,8);
-  memcpy(initialization_vector+8,cipher_text+14,4);
+  memcpy(initialization_vector+8,input+headersize+14,4);
   Serial.print("initialization_vector:");
   printHex(initialization_vector,sizeof(initialization_vector));
   Serial.println();
   
   uint8_t additional_authenticated_data[17];
-  memcpy(additional_authenticated_data,cipher_text+13,1);
+  memcpy(additional_authenticated_data,input+headersize+13,1);
   memcpy(additional_authenticated_data+1,authentication_key,16);
   Serial.print("additional_authenticated_data:");
   printHex(additional_authenticated_data,sizeof(additional_authenticated_data));
   Serial.println();
   
   uint8_t authentication_tag[12];
-  memcpy(authentication_tag,cipher_text+sizeof(cipher_text)-12,12);
+  memcpy(authentication_tag,input+headersize+sizeof(input)-headersize-footersize-12,12);
   Serial.print("authentication_tag:");
   printHex(authentication_tag,sizeof(authentication_tag));
   Serial.println();
 
-  uint8_t ctxt[sizeof(cipher_text)-18-12];
-  memcpy(ctxt,cipher_text+18,sizeof(cipher_text)-12-18);
+  uint8_t cipher_text[sizeof(input)-headersize-footersize-18-12];
+  memcpy(cipher_text,input+headersize+18,sizeof(input)-headersize-footersize-12-18);
   Serial.print("ctxt:");
-  printHex(ctxt,sizeof(ctxt));
+  printHex(cipher_text,sizeof(cipher_text));
   Serial.println();
 
-  uint8_t plaintext[sizeof(ctxt)];
+  uint8_t plaintext[sizeof(cipher_text)];
    
-  if(Decrypt(sizeof(ctxt),ctxt,plaintext,sizeof(authentication_tag),authentication_tag,sizeof(initialization_vector),initialization_vector,
+  if(Decrypt(sizeof(cipher_text),cipher_text,plaintext,sizeof(authentication_tag),authentication_tag,sizeof(initialization_vector),initialization_vector,
       sizeof(additional_authenticated_data), additional_authenticated_data,sizeof(encryption_key)*8,encryption_key))
       {
         Serial.print("plaintext:");
         printHex(plaintext,sizeof(plaintext));
         Serial.println(); 
       }
+  //copy replace encrypted data with decrypted for mbusparser library. Checksum not updated. Hopefully not needed
+  memcpy(input+headersize+18,plaintext,sizeof(plaintext));
+  Serial.print("Decrypted input:");
+  printHex(input,sizeof(input));
+  Serial.println(); 
+
+  MbusStreamParser streamParser(receiveBuffer, sizeof(receiveBuffer));
+  for(int i=0;i<sizeof(input);i++){
+    if (streamParser.pushData(input[i])) {
+      VectorView frame = streamParser.getFrame();
+      if (streamParser.getContentType() == MbusStreamParser::COMPLETE_FRAME) {
+        Serial.println("Frame complete");
+        MeterData md = parseMbusFrame(frame);
+        if (md.activePowerPlusValid) {
+          Serial.print("ActivePower: ");
+          Serial.println(md.activePowerPlus);
+        }
+        if (md.voltageL1Valid) {
+          Serial.print("Voltage L1: ");
+          Serial.println(md.voltageL1);
+        }
+        if (md.voltageL2Valid) {
+          Serial.print("Voltage L2: ");
+          Serial.println(md.voltageL2);
+        }
+        if (md.voltageL3Valid) {
+          Serial.print("Voltage L3: ");
+          Serial.println(md.voltageL3);
+        }
+      } else {
+        Serial.print(".");
+      //writeDebugStringToBuf(debugbuf, sizeof(debugbuf), MeterData(), frame);
+      }
+    }
+  }
 }
 
 void loop() {
@@ -81,7 +120,6 @@ void loop() {
 
 void printHex(const unsigned char* data,const size_t length) {
   for (int i = 0; i < length; i++) {
-    //if (i > 0) Serial.print(',');
     Serial.printf("%02X", data[i]);
   }
 }
@@ -101,8 +139,10 @@ bool Decrypt(const size_t length, const unsigned char* input, unsigned char* out
     return false;
   }
 
-  if (0 != mbedtls_gcm_auth_decrypt(&m_ctx, length, iv, iv_length, aad, aad_length, tag, tag_length, input, output)) {
-    Serial.println("authdecrypt failed");
+  success = mbedtls_gcm_auth_decrypt(&m_ctx, length, iv, iv_length, aad, aad_length, tag, tag_length, input, output);
+  if (0 != success) {
+    Serial.print("authdecrypt failed: ");
+    Serial.println(success);
     return false;
   }
   mbedtls_gcm_free(&m_ctx);
