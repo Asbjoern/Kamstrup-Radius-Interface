@@ -12,6 +12,18 @@ struct MeterData {
   bool activePowerPlusValid = false;
   uint32_t activePowerMinus = 0;
   bool activePowerMinusValid = false;
+  uint32_t activePowerPlusL1 = 0;
+  bool activePowerPlusValidL1 = false;
+  uint32_t activePowerMinusL1 = 0;
+  bool activePowerMinusValidL1 = false;
+  uint32_t activePowerPlusL2 = 0;
+  bool activePowerPlusValidL2 = false;
+  uint32_t activePowerMinusL2 = 0;
+  bool activePowerMinusValidL2 = false;
+  uint32_t activePowerPlusL3 = 0;
+  bool activePowerPlusValidL3 = false;
+  uint32_t activePowerMinusL3 = 0;
+  bool activePowerMinusValidL3 = false;
 
   // Reactive Power +/-
   uint32_t reactivePowerPlus = 0;
@@ -35,16 +47,39 @@ struct MeterData {
   uint32_t centiAmpereL3 = 0;
   bool centiAmpereL3Valid = false;
 
+  //Energy
   uint32_t activeImportWh = 0;
   bool activeImportWhValid = false;
   uint32_t activeExportWh = 0;
   bool activeExportWhValid = false;
+  uint32_t activeImportWhL1 = 0;
+  bool activeImportWhValidL1 = false;
+  uint32_t activeExportWhL1 = 0;
+  bool activeExportWhValidL1 = false;
+  uint32_t activeImportWhL2 = 0;
+  bool activeImportWhValidL2 = false;
+  uint32_t activeExportWhL2 = 0;
+  bool activeExportWhValidL2 = false;
+  uint32_t activeImportWhL3 = 0;
+  bool activeImportWhValidL3 = false;
+  uint32_t activeExportWhL3 = 0;
+  bool activeExportWhValidL3 = false;
 
   uint32_t reactiveImportWh = 0;
   bool reactiveImportWhValid = false;
   uint32_t reactiveExportWh = 0;
   bool reactiveExportWhValid = false;
 
+  //Powerfactor
+  uint32_t powerFactorL1 = 0;
+  bool powerFactorValidL1 = false;
+  uint32_t powerFactorL2 = 0;
+  bool powerFactorValidL2 = false;
+  uint32_t powerFactorL3 = 0;
+  bool powerFactorValidL3 = false;
+  uint32_t powerFactorTotal = 0;
+  bool powerFactorTotalValid = false;
+  
   uint8_t listId = 0;
   size_t parseResultBufferSize = 0;
   size_t parseResultMessageSize = 0;

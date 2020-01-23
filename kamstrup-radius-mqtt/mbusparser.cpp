@@ -54,20 +54,36 @@ uint32_t getObisValue(const VectorView& frame,
 }
 
 enum PowerType {
+  ACTIVE_IMPORT,
+  ACTIVE_EXPORT,
+  REACTIVE_IMPORT,
+  REACTIVE_EXPORT,
   ACTIVE_POWER_PLUS,
   ACTIVE_POWER_MINUS,
   REACTIVE_POWER_PLUS,
   REACTIVE_POWER_MINUS,
-  CURRENT_L1,
-  CURRENT_L2,
-  CURRENT_L3,
   VOLTAGE_L1,
   VOLTAGE_L2,
   VOLTAGE_L3,
-  ACTIVE_IMPORT,
-  ACTIVE_EXPORT,
-  REACTIVE_IMPORT,
-  REACTIVE_EXPORT
+  CURRENT_L1,
+  CURRENT_L2,
+  CURRENT_L3,
+  ACTIVE_POWER_PLUS_L1,
+  ACTIVE_POWER_PLUS_L2,
+  ACTIVE_POWER_PLUS_L3,
+  POWER_FACTOR_L1,
+  POWER_FACTOR_L2,
+  POWER_FACTOR_L3,
+  POWER_FACTOR,
+  ACTIVE_POWER_MINUS_L1,
+  ACTIVE_POWER_MINUS_L2,
+  ACTIVE_POWER_MINUS_L3,
+  ACTIVE_EXPORT_L1,
+  ACTIVE_EXPORT_L2,
+  ACTIVE_EXPORT_L3,
+  ACTIVE_IMPORT_L1,
+  ACTIVE_IMPORT_L2,
+  ACTIVE_IMPORT_L3
 };
 
 uint32_t getPower(const VectorView& frame,
@@ -75,20 +91,36 @@ uint32_t getPower(const VectorView& frame,
                   bool& success)
 {
   switch (type) {
-  case ACTIVE_POWER_PLUS:    return getObisValue(frame, 1, 1, 1, 7, 0, 0xff, 4, success);
-  case ACTIVE_POWER_MINUS:   return getObisValue(frame, 1, 1, 2, 7, 0, 0xff, 4, success);
-  case REACTIVE_POWER_PLUS:  return getObisValue(frame, 1, 1, 3, 7, 0, 0xff, 4, success);
-  case REACTIVE_POWER_MINUS: return getObisValue(frame, 1, 1, 4, 7, 0, 0xff, 4, success);
-  case CURRENT_L1:           return getObisValue(frame, 1, 1, 31, 7, 0, 0xff, 4, success);
-  case CURRENT_L2:           return getObisValue(frame, 1, 1, 51, 7, 0, 0xff, 4, success);
-  case CURRENT_L3:           return getObisValue(frame, 1, 1, 71, 7, 0, 0xff, 4, success);
-  case VOLTAGE_L1:           return getObisValue(frame, 1, 1, 32, 7, 0, 0xff, 2, success);
-  case VOLTAGE_L2:           return getObisValue(frame, 1, 1, 52, 7, 0, 0xff, 2, success);
-  case VOLTAGE_L3:           return getObisValue(frame, 1, 1, 72, 7, 0, 0xff, 2, success);
-  case ACTIVE_IMPORT:        return getObisValue(frame, 1, 1, 1, 8, 0, 0xff, 4, success);
-  case ACTIVE_EXPORT:        return getObisValue(frame, 1, 1, 2, 8, 0, 0xff, 4, success);
-  case REACTIVE_IMPORT:      return getObisValue(frame, 1, 1, 3, 8, 0, 0xff, 4, success);
-  case REACTIVE_EXPORT:      return getObisValue(frame, 1, 1, 4, 8, 0, 0xff, 4, success);
+    case ACTIVE_IMPORT:        return getObisValue(frame, 1, 1, 1, 8, 0, 0xff, 4, success);
+    case ACTIVE_EXPORT:        return getObisValue(frame, 1, 1, 2, 8, 0, 0xff, 4, success);
+    case REACTIVE_IMPORT:      return getObisValue(frame, 1, 1, 3, 8, 0, 0xff, 4, success);
+    case REACTIVE_EXPORT:      return getObisValue(frame, 1, 1, 4, 8, 0, 0xff, 4, success);
+    case ACTIVE_POWER_PLUS:    return getObisValue(frame, 1, 1, 1, 7, 0, 0xff, 4, success);
+    case ACTIVE_POWER_MINUS:   return getObisValue(frame, 1, 1, 2, 7, 0, 0xff, 4, success);
+    case REACTIVE_POWER_PLUS:  return getObisValue(frame, 1, 1, 3, 7, 0, 0xff, 4, success);
+    case REACTIVE_POWER_MINUS: return getObisValue(frame, 1, 1, 4, 7, 0, 0xff, 4, success);
+    case VOLTAGE_L1:           return getObisValue(frame, 1, 1, 32, 7, 0, 0xff, 2, success);
+    case VOLTAGE_L2:           return getObisValue(frame, 1, 1, 52, 7, 0, 0xff, 2, success);
+    case VOLTAGE_L3:           return getObisValue(frame, 1, 1, 72, 7, 0, 0xff, 2, success);
+    case CURRENT_L1:           return getObisValue(frame, 1, 1, 31, 7, 0, 0xff, 4, success);
+    case CURRENT_L2:           return getObisValue(frame, 1, 1, 51, 7, 0, 0xff, 4, success);
+    case CURRENT_L3:           return getObisValue(frame, 1, 1, 71, 7, 0, 0xff, 4, success);
+    case ACTIVE_POWER_PLUS_L1: return getObisValue(frame, 1, 1, 21, 7, 0, 0xff, 4, success);
+    case ACTIVE_POWER_PLUS_L2: return getObisValue(frame, 1, 1, 41, 7, 0, 0xff, 4, success);
+    case ACTIVE_POWER_PLUS_L3: return getObisValue(frame, 1, 1, 61, 7, 0, 0xff, 4, success);
+    case POWER_FACTOR_L1:      return getObisValue(frame, 1, 1, 33, 7, 0, 0xff, 2, success);
+    case POWER_FACTOR_L2:      return getObisValue(frame, 1, 1, 53, 7, 0, 0xff, 2, success);
+    case POWER_FACTOR_L3:      return getObisValue(frame, 1, 1, 73, 7, 0, 0xff, 2, success);
+    case POWER_FACTOR:         return getObisValue(frame, 1, 1, 13, 7, 0, 0xff, 2, success); 
+    case ACTIVE_POWER_MINUS_L1:return getObisValue(frame, 1, 1, 22, 7, 0, 0xff, 4, success);
+    case ACTIVE_POWER_MINUS_L2:return getObisValue(frame, 1, 1, 42, 7, 0, 0xff, 4, success);
+    case ACTIVE_POWER_MINUS_L3:return getObisValue(frame, 1, 1, 62, 7, 0, 0xff, 4, success); 
+    case ACTIVE_EXPORT_L1:     return getObisValue(frame, 1, 1, 22, 8, 0, 0xff, 4, success);
+    case ACTIVE_EXPORT_L2:     return getObisValue(frame, 1, 1, 42, 8, 0, 0xff, 4, success);
+    case ACTIVE_EXPORT_L3:     return getObisValue(frame, 1, 1, 62, 8, 0, 0xff, 4, success);
+    case ACTIVE_IMPORT_L1:     return getObisValue(frame, 1, 1, 21, 8, 0, 0xff, 4, success);
+    case ACTIVE_IMPORT_L2:     return getObisValue(frame, 1, 1, 41, 8, 0, 0xff, 4, success);
+    case ACTIVE_IMPORT_L3:     return getObisValue(frame, 1, 1, 61, 8, 0, 0xff, 4, success);
   default: return 0;
   }
 }
@@ -125,6 +157,22 @@ MeterData parseMbusFrame(const VectorView& frame)
       result.activeExportWh = getPower(frame, ACTIVE_EXPORT, result.activeExportWhValid)*10;
       result.reactiveImportWh = getPower(frame, REACTIVE_IMPORT, result.reactiveImportWhValid)*10;
       result.reactiveExportWh = getPower(frame, REACTIVE_EXPORT, result.reactiveExportWhValid)*10;
+      result.activePowerPlusL1 = getPower(frame, ACTIVE_POWER_PLUS_L1, result.activePowerPlusValidL1);
+      result.activePowerPlusL2 = getPower(frame, ACTIVE_POWER_PLUS_L2, result.activePowerPlusValidL2);
+      result.activePowerPlusL3 = getPower(frame, ACTIVE_POWER_PLUS_L3, result.activePowerPlusValidL3);
+      result.activePowerMinusL1 = getPower(frame, ACTIVE_POWER_MINUS_L1, result.activePowerMinusValidL1);
+      result.activePowerMinusL2 = getPower(frame, ACTIVE_POWER_MINUS_L2, result.activePowerMinusValidL1);
+      result.activePowerMinusL3 = getPower(frame, ACTIVE_POWER_MINUS_L3, result.activePowerMinusValidL1);
+      result.powerFactorL1 = getPower(frame, POWER_FACTOR_L1, result.powerFactorValidL1);
+      result.powerFactorL2 = getPower(frame, POWER_FACTOR_L2, result.powerFactorValidL2);
+      result.powerFactorL3 = getPower(frame, POWER_FACTOR_L3, result.powerFactorValidL3);
+      result.powerFactorTotal = getPower(frame, POWER_FACTOR, result.powerFactorTotalValid);
+      result.activeImportWhL1 = getPower(frame, ACTIVE_IMPORT_L1, result.activeImportWhValidL1);
+      result.activeImportWhL2 = getPower(frame, ACTIVE_IMPORT_L2, result.activeImportWhValidL2);
+      result.activeImportWhL3 = getPower(frame, ACTIVE_IMPORT_L3, result.activeImportWhValidL3);
+      result.activeExportWhL1 = getPower(frame, ACTIVE_EXPORT_L1, result.activeExportWhValidL1);
+      result.activeExportWhL2 = getPower(frame, ACTIVE_EXPORT_L2, result.activeExportWhValidL2);
+      result.activeExportWhL3 = getPower(frame, ACTIVE_EXPORT_L3, result.activeExportWhValidL3);
     }
   }
   return result;
