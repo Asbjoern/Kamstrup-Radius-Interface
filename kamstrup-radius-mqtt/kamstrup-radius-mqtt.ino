@@ -1,15 +1,20 @@
+#include <PersWiFiManager.h>
+#include <ArduinoJson.h>
+#include <ESP8266WiFi.h>
+#include <EasySSDP.h>
+#include <SPIFFSReadServer.h>
+// upload data folder to chip with Arduino ESP8266 filesystem uploader
+// https://github.com/esp8266/arduino-esp8266fs-plugin
+#include <DNSServer.h>
 #include <FS.h>  
 #include <DoubleResetDetect.h>
-#include <ESP8266WiFi.h>
-#include <ESP8266mDNS.h>
-#include <DNSServer.h>
-#include <ESP8266WebServer.h>
-#include <WiFiManager.h>
-#include <Ticker.h>
-#include <ArduinoJson.h>
-
 #include "gcm.h"
 #include "mbusparser.h"
+
+#define DEBUG_BEGIN Serial.begin(115200);
+#define DEBUG_PRINT(x) Serial.print(x);Log.push_back(x);
+#define DEBUG_PRINTLN(x) Serial.println(x);Log.push_back(x);
+
 
 #define DRD_TIMEOUT 5.0
 #define DRD_ADDRESS 0x00
@@ -21,18 +26,12 @@ char mqtt_server[40];
 char mqtt_port[6] = "1883";
 char mqtt_uid[40];
 char mqtt_pwd[40];
-char hostname[40] ="KamstrupMQTT";
+char hostname[40] ="dd3";
 char conf_key[] =     "5AD84121D9D20B364B7A11F3C1B5827F";
 char conf_authkey[] = "AFB3F93E3E7204EDB3C27F96DBD51AE0";
 
 uint8_t encryption_key[16];
 uint8_t authentication_key[16];
-
-bool shouldSaveConfig = false;
-void saveConfigCallback () {
-  Serial.println("Should save config");
-  shouldSaveConfig = true;
-}
 
 uint8_t input[] = {0x7E,0xA1,0xE9,0x41,0x03,0x13,0xC6,0x37,0xE6,0xE7,0x00,
 0xDB,0x08,0x4B,0x41,0x4D,0x45,0x01,0xA4,0xDC,0x52,0x82,0x01,0xD0,0x30,0x00,0x07,0x88,0xE1,0xA0,0x39,0xB2,0xD1,0x4C,0x71,
@@ -60,26 +59,156 @@ VectorView decryptedFrame(decryptedFrameBuffer,0);
 
 DoubleResetDetect drd(DRD_TIMEOUT, DRD_ADDRESS);
 mbedtls_gcm_context m_ctx;
+#define LOGSIZE 50
+std::vector<String> Log;
+
+SPIFFSReadServer server(80);
+DNSServer dnsServer;
+PersWiFiManager persWM(server, dnsServer);
 
 void setup() {
-  Serial.begin(115200);
-  Serial.println();
-  Serial.println("mounting FS...");
+  DEBUG_BEGIN
+  DEBUG_PRINTLN("")
+  if (SPIFFS.begin()) 
+    DEBUG_PRINTLN("Mounted file system");
+  loadConfig();
 
-  if (SPIFFS.begin()) {
-    Serial.println("mounted file system");
-    if (SPIFFS.exists("/config.json")) {
+  if (drd.detect())
+  {
+    DEBUG_PRINTLN("** Double reset boot. Ressetting WiFi settings **");
+    persWM.resetSettings();
+  }
+  
+  WiFi.hostname(hostname);
+  persWM.onConnect(&on_connect);
+  persWM.onAp([](){
+    DEBUG_PRINTLN("AP MODE: " + persWM.getApSsid());
+  });
+  persWM.setApCredentials(hostname);
+  persWM.setConnectNonBlock(false);
+  persWM.begin();
+  
+  server.on("/log", []() {
+    String logs = "Log contains:\n";
+    for (int i = 0; i<Log.size();i++)
+      logs += Log.at(i) + '\n';
+    server.send(200, "text/plain", logs.c_str());
+   });
+
+server.on("/config", []() {
+    DEBUG_PRINTLN("server.on /config");
+    if (server.hasArg("mqtt_server")) {
+      strlcpy(mqtt_server,server.arg("mqtt_server").c_str(),sizeof(mqtt_server)-1);
+      DEBUG_PRINTLN("mqtt_server: " + server.arg("mqtt_server"));
+    } 
+    if (server.hasArg("mqtt_port")) {
+      strlcpy(mqtt_port,server.arg("mqtt_port").c_str(),sizeof(mqtt_port)-1);
+      DEBUG_PRINTLN("mqtt_port: " + server.arg("mqtt_port"));
+    }
+    if (server.hasArg("mqtt_uid")) {
+      strlcpy(mqtt_uid,server.arg("mqtt_uid").c_str(),sizeof(mqtt_uid)-1);
+      DEBUG_PRINTLN("mqtt_uid: " + server.arg("mqtt_uid"));
+    } 
+    if (server.hasArg("mqtt_pwd")) {
+      strlcpy(mqtt_pwd,server.arg("mqtt_pwd").c_str(),sizeof(mqtt_pwd)-1);
+      DEBUG_PRINTLN("mqtt_pwd: " + server.arg("mqtt_pwd"));
+    } 
+    if (server.hasArg("hostname")) {
+      strlcpy(hostname,server.arg("hostname").c_str(),sizeof(hostname)-1);
+      DEBUG_PRINTLN("hostname: " + server.arg("hostname"));
+    }
+    if (server.hasArg("conf_key")) {
+      strlcpy(conf_key,server.arg("conf_key").c_str(),sizeof(conf_key));
+      DEBUG_PRINTLN("conf_key: " + server.arg("conf_key"));
+    }
+    if (server.hasArg("conf_authkey")) {
+      strlcpy(conf_authkey,server.arg("conf_authkey").c_str(),sizeof(conf_authkey));
+      DEBUG_PRINTLN("conf_authkey: " + server.arg("conf_authkey"));
+    }
+
+    if(server.hasArg("mqtt_server") && 
+      server.hasArg("mqtt_port") && 
+      server.hasArg("mqtt_uid") && 
+      server.hasArg("mqtt_pwd") && 
+      server.hasArg("hostname") && 
+      server.hasArg("conf_key") && 
+      server.hasArg("conf_authkey")){
+       saveConfig();
+    }
+
+  StaticJsonDocument<512> json;
+  json["mqtt_server"] = mqtt_server;
+  json["mqtt_port"] = mqtt_port;
+  json["mqtt_uid"] = mqtt_uid;
+  json["mqtt_pwd"] = mqtt_pwd;
+  json["hostname"] = hostname;
+  json["conf_key"] = conf_key;
+  json["conf_authkey"] = conf_authkey;
+  String tmp;
+  serializeJson(json, tmp);
+    server.send(200, "application/json", tmp);
+  });
+  server.begin();
+  DEBUG_PRINTLN("Setup complete.");
+}
+
+void loop() {
+  if(Log.size()>LOGSIZE){
+    std::rotate(Log.begin(),Log.end()-LOGSIZE,Log.end());
+    Log.resize(LOGSIZE);
+  }
+  persWM.handleWiFi();
+  dnsServer.processNextRequest();
+  server.handleClient();
+  
+  MbusStreamParser streamParser(receiveBuffer, sizeof(receiveBuffer));
+  for(int i=0;i<sizeof(input);i++){
+    if (streamParser.pushData(input[i])) {
+      VectorView frame = streamParser.getFrame();
+      if (streamParser.getContentType() == MbusStreamParser::COMPLETE_FRAME) {
+        DEBUG_PRINTLN("Frame complete");
+        if(!decrypt(frame))
+          {DEBUG_PRINTLN("Decryption failed");}
+        MeterData md = parseMbusFrame(decryptedFrame);
+        if (md.activePowerPlusValid) {
+          DEBUG_PRINTLN("ActivePower: " + String(md.activePowerPlus));
+        }
+        if (md.voltageL1Valid) {
+          DEBUG_PRINTLN("Voltage L1: " + String(md.voltageL1));
+        }
+        if (md.voltageL2Valid) {
+          DEBUG_PRINTLN("Voltage L2: " + String(md.voltageL2));
+        }
+        if (md.voltageL3Valid) {
+          DEBUG_PRINTLN("Voltage L3: " + String(md.voltageL3));
+        }
+      }
+    }
+  }
+  delay(1000);
+
+}
+
+void on_connect() {
+    
+  DEBUG_PRINTLN("Wifi connected");
+  DEBUG_PRINTLN("Connect to http://"+String(hostname)+".local or http://" + WiFi.localIP().toString());
+  EasySSDP::begin(server);
+}
+
+void loadConfig(){
+  DEBUG_PRINTLN("Load config");
+  if (SPIFFS.exists("/config.json")) {
       //file exists, reading and loading
-      Serial.println("reading config file");
+      DEBUG_PRINTLN("reading config file");
       File configFile = SPIFFS.open("/config.json", "r");
       if (configFile) {
-        Serial.println("opened config file");
+        DEBUG_PRINTLN("opened config file");
         size_t size = configFile.size();
         StaticJsonDocument<512> doc;
         DeserializationError error = deserializeJson(doc,configFile);
         if (error){
-          Serial.println(F("Failed to read file, using default configuration"));
-          Serial.println(error.c_str());
+          DEBUG_PRINTLN("Failed to read file. Using default configuration. - "+  String(error.c_str()));
         }
         else
         {
@@ -93,120 +222,42 @@ void setup() {
         }
         configFile.close();
         serializeJson(doc, Serial);
+        hexStr2bArr(encryption_key, conf_key, sizeof(encryption_key));
+        hexStr2bArr(authentication_key, conf_authkey, sizeof(authentication_key));
       }
-    }
-  } else {
-    Serial.println("failed to mount FS");
   }
-  WiFiManagerParameter custom_mqtt_server("server", "mqtt server", mqtt_server, 40);
-  WiFiManagerParameter custom_mqtt_port("port", "mqtt port", mqtt_port, 6);
-  WiFiManagerParameter custom_mqtt_userid("userid", "mqtt uuid", mqtt_uid, 40);
-  WiFiManagerParameter custom_mqtt_pwd("password", "mqtt pwd", mqtt_pwd, 40);
-  WiFiManagerParameter custom_hostname("hostname", "hostname", hostname, 40);
-  WiFiManagerParameter custom_enckey("encryption key", "encryption key", conf_key, 16);
-  WiFiManagerParameter custom_authkey("authentication key", "authentication key", conf_authkey, 16);
-
-  WiFiManager wifiManager;
-  wifiManager.setSaveConfigCallback(saveConfigCallback);
-  wifiManager.addParameter(&custom_mqtt_server);
-  wifiManager.addParameter(&custom_mqtt_port);
-  wifiManager.addParameter(&custom_mqtt_userid);
-  wifiManager.addParameter(&custom_mqtt_pwd);
-  wifiManager.addParameter(&custom_hostname);
-  wifiManager.addParameter(&custom_enckey);
-  wifiManager.addParameter(&custom_authkey);
-  
-  if (drd.detect())
-  {
-    Serial.println("** Double reset boot **");
-    if (!wifiManager.startConfigPortal(hostname)) {
-      Serial.println("failed to connect and hit timeout");
-    }
+  else{
+    DEBUG_PRINTLN("Config file not found. Using default configuration");
   }
-  else
-  {
-    Serial.println("** Normal boot **");
-    if (!wifiManager.autoConnect(hostname)) {
-      Serial.println("failed to connect and hit timeout");
-    }
-  }
-
-  strcpy(mqtt_server, custom_mqtt_server.getValue());
-  strcpy(mqtt_port, custom_mqtt_port.getValue());
-  strcpy(mqtt_uid, custom_mqtt_userid.getValue());
-  strcpy(mqtt_pwd, custom_mqtt_pwd.getValue());
-  strcpy(hostname, custom_hostname.getValue());
-  strcpy(conf_key, custom_enckey.getValue());
-  strcpy(conf_authkey, custom_authkey.getValue());
-
-  if (shouldSaveConfig) {
-    Serial.println("saving config");
-    StaticJsonDocument<512> json;
-    json["mqtt_server"] = mqtt_server;
-    json["mqtt_port"] = mqtt_port;
-    json["mqtt_uid"] = mqtt_uid;
-    json["mqtt_pwd"] = mqtt_pwd;
-    json["hostname"] = hostname;
-    json["conf_key"] = conf_key;
-    json["conf_authkey"] = conf_authkey;
-    serializeJson(json, Serial);
-
-    File configFile = SPIFFS.open("/config.json", "w");
-    if (!configFile) {
-      Serial.println("failed to open config file for writing");
-    }
-    serializeJson(json, configFile);
-    configFile.close();
-    ESP.reset();
-  }
-  
-
-  f(encryption_key, conf_key, sizeof(encryption_key));
-  f(authentication_key, conf_authkey, sizeof(authentication_key));
-  Serial.print("Encryptionkey: ");
-  printHex(encryption_key,sizeof(encryption_key));
-  Serial.println();
-  Serial.print("authentication_key: ");
-  printHex(authentication_key,sizeof(authentication_key));
-  Serial.println();
-
-  
+  DEBUG_PRINTLN("MQTT server: " + String(mqtt_server));
+  DEBUG_PRINTLN("MQTT port: " + String(mqtt_port));
+  DEBUG_PRINTLN("MQTT user: " + String(mqtt_uid));
+  DEBUG_PRINTLN("MQTT password: " + String(mqtt_pwd));
+  DEBUG_PRINTLN("Hostname: " + String(hostname));
+  DEBUG_PRINTLN("Encryption key: " + String(conf_key));
+  DEBUG_PRINTLN("Authentication key: " + String(conf_authkey));
 }
 
-void loop() {
-  return;
-  MbusStreamParser streamParser(receiveBuffer, sizeof(receiveBuffer));
-  for(int i=0;i<sizeof(input);i++){
-    if (streamParser.pushData(input[i])) {
-      VectorView frame = streamParser.getFrame();
-      if (streamParser.getContentType() == MbusStreamParser::COMPLETE_FRAME) {
-        Serial.println("Frame complete");
-        if(!decrypt(frame))
-          Serial.println("Decryption failed");
-        MeterData md = parseMbusFrame(decryptedFrame);
-        if (md.activePowerPlusValid) {
-          Serial.print("ActivePower: ");
-          Serial.println(md.activePowerPlus);
-        }
-        if (md.voltageL1Valid) {
-          Serial.print("Voltage L1: ");
-          Serial.println(md.voltageL1);
-        }
-        if (md.voltageL2Valid) {
-          Serial.print("Voltage L2: ");
-          Serial.println(md.voltageL2);
-        }
-        if (md.voltageL3Valid) {
-          Serial.print("Voltage L3: ");
-          Serial.println(md.voltageL3);
-        }
-      } else {
-        Serial.print(".");
-      }
-    }
+void saveConfig(){
+  DEBUG_PRINTLN("saving config");
+  StaticJsonDocument<512> json;
+  json["mqtt_server"] = mqtt_server;
+  json["mqtt_port"] = mqtt_port;
+  json["mqtt_uid"] = mqtt_uid;
+  json["mqtt_pwd"] = mqtt_pwd;
+  json["hostname"] = hostname;
+  json["conf_key"] = conf_key;
+  json["conf_authkey"] = conf_authkey;
+      
+  File configFile = SPIFFS.open("/config.json", "w");
+  if (!configFile) {
+    DEBUG_PRINTLN("failed to open config file for writing");
   }
-  delay(10000);
-
+  serializeJson(json, configFile);
+  configFile.close();
+  hexStr2bArr(encryption_key, conf_key, sizeof(encryption_key));
+  hexStr2bArr(authentication_key, conf_authkey, sizeof(authentication_key));
+  //todo: reload mqtt, mdns and other
 }
 
 void printHex(const unsigned char* data,const size_t length) {
@@ -224,7 +275,7 @@ void printHex(const VectorView& frame) {
 bool decrypt(const VectorView& frame){
 
   if(frame.size() < headersize+footersize+12+18){
-    Serial.println("Invalid frame size.");
+    DEBUG_PRINTLN("Invalid frame size.");
   }
   
   memcpy(decryptedFrameBuffer, &frame.front(), frame.size());
@@ -251,16 +302,14 @@ bool decrypt(const VectorView& frame){
   mbedtls_gcm_init(&m_ctx);
   int success = mbedtls_gcm_setkey(&m_ctx, MBEDTLS_CIPHER_ID_AES, encryption_key, sizeof(encryption_key)*8);
   if (0 != success ) {
-    Serial.print("Setkey failed: ");
-    Serial.println(success);
+    DEBUG_PRINTLN("Setkey failed: " + String(success));
     return false;
   }
   success = mbedtls_gcm_auth_decrypt(&m_ctx, sizeof(cipher_text), initialization_vector, sizeof(initialization_vector), 
     additional_authenticated_data, sizeof(additional_authenticated_data), authentication_tag, sizeof(authentication_tag), 
     cipher_text, plaintext);
   if (0 != success) {
-    Serial.print("authdecrypt failed: ");
-    Serial.println(success);
+    DEBUG_PRINTLN("authdecrypt failed: " + String(success));
     return false;
   }
   mbedtls_gcm_free(&m_ctx);
@@ -272,7 +321,7 @@ bool decrypt(const VectorView& frame){
   return true;
 }
 
-void f(uint8_t *dest, const char *source, int bytes_n)
+void hexStr2bArr(uint8_t *dest, const char *source, int bytes_n)
 {
     uint8_t *dst = dest;
     uint8_t *end = dest + sizeof(bytes_n);

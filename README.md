@@ -21,12 +21,13 @@ Based on Python example provided by Radius.
 - [x] Get decryption working
 - [x] Get parser working
 - [ ] Implement MQTT client
-- [ ] Add Wifimanager configuration
+- [x] Add persWifimanager configuration
 - [ ] Design power supply for limited current and voltage from meter. (Supercapacitor buffer?)
 - [ ] Read serial port and connect to meter
 - [ ] Design PCB to specifications in *5512-2584_GB_A2_11-2019 OMNIPOWER HAN interface specification.pdf*
 - [ ] Implement functionality for status LED's on PCB
 - [ ] Design case for PCB to specifications in *5512-2584_GB_A2_11-2019 OMNIPOWER HAN interface specification.pdf*
+- [ ] Show current data on webpage
 
 
 Development in Develop branch. Working releases in master branch.
