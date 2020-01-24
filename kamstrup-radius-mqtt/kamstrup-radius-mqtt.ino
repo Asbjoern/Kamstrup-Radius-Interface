@@ -2,6 +2,7 @@
 #include <ArduinoJson.h>
 #include <ESP8266WiFi.h>
 #include <EasySSDP.h>
+#include <ESP8266mDNS.h>
 #include <SPIFFSReadServer.h>
 // upload data folder to chip with Arduino ESP8266 filesystem uploader
 // https://github.com/esp8266/arduino-esp8266fs-plugin
@@ -26,7 +27,8 @@ char mqtt_server[40];
 char mqtt_port[6] = "1883";
 char mqtt_uid[40];
 char mqtt_pwd[40];
-char hostname[40] ="dd3";
+char mqtt_topic[40]="kamstrup";
+char hostname[40] ="KamstrupMQTT";
 char conf_key[] =     "5AD84121D9D20B364B7A11F3C1B5827F";
 char conf_authkey[] = "AFB3F93E3E7204EDB3C27F96DBD51AE0";
 
@@ -95,7 +97,7 @@ void setup() {
     server.send(200, "text/plain", logs.c_str());
    });
 
-server.on("/config", []() {
+  server.on("/config", []() {
     DEBUG_PRINTLN("server.on /config");
     if (server.hasArg("mqtt_server")) {
       strlcpy(mqtt_server,server.arg("mqtt_server").c_str(),sizeof(mqtt_server)-1);
@@ -112,6 +114,10 @@ server.on("/config", []() {
     if (server.hasArg("mqtt_pwd")) {
       strlcpy(mqtt_pwd,server.arg("mqtt_pwd").c_str(),sizeof(mqtt_pwd)-1);
       DEBUG_PRINTLN("mqtt_pwd: " + server.arg("mqtt_pwd"));
+    } 
+    if (server.hasArg("mqtt_topic")) {
+      strlcpy(mqtt_topic,server.arg("mqtt_topic").c_str(),sizeof(mqtt_topic)-1);
+      DEBUG_PRINTLN("mqtt_topic: " + server.arg("mqtt_topic"));
     } 
     if (server.hasArg("hostname")) {
       strlcpy(hostname,server.arg("hostname").c_str(),sizeof(hostname)-1);
@@ -130,6 +136,7 @@ server.on("/config", []() {
       server.hasArg("mqtt_port") && 
       server.hasArg("mqtt_uid") && 
       server.hasArg("mqtt_pwd") && 
+      server.hasArg("mqtt_topic") && 
       server.hasArg("hostname") && 
       server.hasArg("conf_key") && 
       server.hasArg("conf_authkey")){
@@ -141,6 +148,7 @@ server.on("/config", []() {
   json["mqtt_port"] = mqtt_port;
   json["mqtt_uid"] = mqtt_uid;
   json["mqtt_pwd"] = mqtt_pwd;
+  json["mqtt_topic"] = mqtt_topic;
   json["hostname"] = hostname;
   json["conf_key"] = conf_key;
   json["conf_authkey"] = conf_authkey;
@@ -194,6 +202,12 @@ void on_connect() {
   DEBUG_PRINTLN("Wifi connected");
   DEBUG_PRINTLN("Connect to http://"+String(hostname)+".local or http://" + WiFi.localIP().toString());
   EasySSDP::begin(server);
+  if (MDNS.begin(hostname)) {
+    DEBUG_PRINTLN("MDNS responder started");
+    MDNS.addService("http", "tcp", 80);
+  } else {
+    DEBUG_PRINTLN("Error setting up MDNS responder!");
+  }
 }
 
 void loadConfig(){
@@ -216,23 +230,25 @@ void loadConfig(){
           strcpy(mqtt_port, doc["mqtt_port"]);
           strcpy(mqtt_uid, doc["mqtt_uid"]);
           strcpy(mqtt_pwd, doc["mqtt_pwd"]);
+          strcpy(mqtt_topic, doc["mqtt_topic"]);
           strcpy(hostname, doc["hostname"]);
           strcpy(conf_key, doc["conf_key"]);
           strcpy(conf_authkey, doc["conf_authkey"]);
         }
         configFile.close();
         serializeJson(doc, Serial);
-        hexStr2bArr(encryption_key, conf_key, sizeof(encryption_key));
-        hexStr2bArr(authentication_key, conf_authkey, sizeof(authentication_key));
       }
   }
   else{
     DEBUG_PRINTLN("Config file not found. Using default configuration");
   }
+  hexStr2bArr(encryption_key, conf_key, sizeof(encryption_key));
+  hexStr2bArr(authentication_key, conf_authkey, sizeof(authentication_key));
   DEBUG_PRINTLN("MQTT server: " + String(mqtt_server));
   DEBUG_PRINTLN("MQTT port: " + String(mqtt_port));
   DEBUG_PRINTLN("MQTT user: " + String(mqtt_uid));
   DEBUG_PRINTLN("MQTT password: " + String(mqtt_pwd));
+  DEBUG_PRINTLN("MQTT topic: " + String(mqtt_topic));
   DEBUG_PRINTLN("Hostname: " + String(hostname));
   DEBUG_PRINTLN("Encryption key: " + String(conf_key));
   DEBUG_PRINTLN("Authentication key: " + String(conf_authkey));
@@ -245,6 +261,7 @@ void saveConfig(){
   json["mqtt_port"] = mqtt_port;
   json["mqtt_uid"] = mqtt_uid;
   json["mqtt_pwd"] = mqtt_pwd;
+  json["mqtt_topic"] = mqtt_topic;
   json["hostname"] = hostname;
   json["conf_key"] = conf_key;
   json["conf_authkey"] = conf_authkey;

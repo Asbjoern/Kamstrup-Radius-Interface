@@ -20,6 +20,7 @@
 						g("mqtt_port").value = data.mqtt_port;
 						g("mqtt_uid").value = data.mqtt_uid;
 						g("mqtt_pwd").value = data.mqtt_pwd;
+						g("mqtt_topic").value = data.mqtt_topic;
 						g("hostname").value = data.hostname;
 						g("conf_key").value = data.conf_key;
 						g("conf_authkey").value = data.conf_authkey;
@@ -109,6 +110,10 @@
             <br />
             <label for="mqtt_pwd">MQTT password:</label>
 			<input id='mqtt_pwd' name='mqtt_pwd' maxlength=40 />
+            <br />
+			<br />
+			<label for="mqtt_topic">MQTT topic:</label>
+			<input id='mqtt_topic' name='mqtt_topic' maxlength=40 />
             <br />
             <br />
             <button type='submit'>Save</button>

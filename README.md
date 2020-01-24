@@ -27,7 +27,7 @@ Based on Python example provided by Radius.
 - [ ] Design PCB to specifications in *5512-2584_GB_A2_11-2019 OMNIPOWER HAN interface specification.pdf*
 - [ ] Implement functionality for status LED's on PCB
 - [ ] Design case for PCB to specifications in *5512-2584_GB_A2_11-2019 OMNIPOWER HAN interface specification.pdf*
-- [ ] Show current data on webpage
+- [ ] Show current data on webpage incl. REST api to fetch data in JSON format
 
 
 Development in Develop branch. Working releases in master branch.
