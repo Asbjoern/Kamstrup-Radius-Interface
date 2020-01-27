@@ -197,6 +197,51 @@ X ~ 2 0 -100 30 U 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
+# HANmodule-rescue_MIC5219-3_3YM5-TR-dk_PMIC-Voltage-Regulators-Linear
+#
+DEF HANmodule-rescue_MIC5219-3_3YM5-TR-dk_PMIC-Voltage-Regulators-Linear U 0 20 Y Y 1 F N
+F0 "U" 0 150 60 H V C CNN
+F1 "HANmodule-rescue_MIC5219-3_3YM5-TR-dk_PMIC-Voltage-Regulators-Linear" 0 250 60 H V C CNN
+F2 "digikey-footprints:SOT-753" 200 200 60 H I L CNN
+F3 "http://www.microchip.com/mymicrochip/filehandler.aspx?ddocname=en579712" 200 300 60 H I L CNN
+F4 "576-1281-1-ND" 200 400 60 H I L CNN "Digi-Key_PN"
+F5 "MIC5219-3.3YM5-TR" 200 500 60 H I L CNN "MPN"
+F6 "Integrated Circuits (ICs)" 200 600 60 H I L CNN "Category"
+F7 "PMIC - Voltage Regulators - Linear" 200 700 60 H I L CNN "Family"
+F8 "http://www.microchip.com/mymicrochip/filehandler.aspx?ddocname=en579712" 200 800 60 H I L CNN "DK_Datasheet_Link"
+F9 "/product-detail/en/microchip-technology/MIC5219-3.3YM5-TR/576-1281-1-ND/771902" 200 900 60 H I L CNN "DK_Detail_Page"
+F10 "IC REG LINEAR 3.3V 500MA SOT23-5" 200 1000 60 H I L CNN "Description"
+F11 "Microchip Technology" 200 1100 60 H I L CNN "Manufacturer"
+F12 "Active" 200 1200 60 H I L CNN "Status"
+DRAW
+S -200 100 200 -200 0 1 0 f
+X IN 1 -300 0 100 R 50 50 1 1 W
+X GND 2 0 -300 100 U 50 50 1 1 W
+X EN 3 -300 -100 100 R 50 50 1 1 I
+X BYP 4 300 -100 100 L 50 50 1 1 P
+X OUT 5 300 0 100 L 50 50 1 1 w
+ENDDRAW
+ENDDEF
+#
+# Power_Supervisor_TCM809
+#
+DEF Power_Supervisor_TCM809 U 0 40 Y Y 1 F N
+F0 "U" 0 350 50 H V L CNN
+F1 "Power_Supervisor_TCM809" -50 -350 50 H V L CNN
+F2 "" -400 150 50 H I C CNN
+F3 "" -300 250 50 H I C CNN
+$FPLIST
+ SOT?23*
+ *SC?70*
+$ENDFPLIST
+DRAW
+S -200 300 200 -300 1 1 10 f
+X GND 1 -100 -400 100 U 50 50 1 1 W
+X ~RESET~ 2 300 0 100 L 50 50 1 1 O
+X VCC 3 -100 400 100 D 50 50 1 1 W
+ENDDRAW
+ENDDEF
+#
 # RF_Module_ESP-12F
 #
 DEF RF_Module_ESP-12F U 0 20 Y Y 1 F N
@@ -252,32 +297,6 @@ X 2 2 200 0 100 L 50 50 0 1 P
 ENDDRAW
 ENDDEF
 #
-# dk_PMIC-Voltage-Regulators-Linear_MIC5219-3_3YM5-TR
-#
-DEF dk_PMIC-Voltage-Regulators-Linear_MIC5219-3_3YM5-TR U 0 20 Y Y 1 F N
-F0 "U" 0 150 60 H V C CNN
-F1 "dk_PMIC-Voltage-Regulators-Linear_MIC5219-3_3YM5-TR" 0 250 60 H V C CNN
-F2 "digikey-footprints:SOT-753" 200 200 60 H I L CNN
-F3 "http://www.microchip.com/mymicrochip/filehandler.aspx?ddocname=en579712" 200 300 60 H I L CNN
-F4 "576-1281-1-ND" 200 400 60 H I L CNN "Digi-Key_PN"
-F5 "MIC5219-3.3YM5-TR" 200 500 60 H I L CNN "MPN"
-F6 "Integrated Circuits (ICs)" 200 600 60 H I L CNN "Category"
-F7 "PMIC - Voltage Regulators - Linear" 200 700 60 H I L CNN "Family"
-F8 "http://www.microchip.com/mymicrochip/filehandler.aspx?ddocname=en579712" 200 800 60 H I L CNN "DK_Datasheet_Link"
-F9 "/product-detail/en/microchip-technology/MIC5219-3.3YM5-TR/576-1281-1-ND/771902" 200 900 60 H I L CNN "DK_Detail_Page"
-F10 "IC REG LINEAR 3.3V 500MA SOT23-5" 200 1000 60 H I L CNN "Description"
-F11 "Microchip Technology" 200 1100 60 H I L CNN "Manufacturer"
-F12 "Active" 200 1200 60 H I L CNN "Status"
-DRAW
-S -200 100 200 -200 0 1 0 f
-X IN 1 -300 0 100 R 50 50 1 1 W
-X GND 2 0 -300 100 U 50 50 1 1 W
-X EN 3 -300 -100 100 R 50 50 1 1 I
-X BYP 4 300 -100 100 L 50 50 1 1 P
-X OUT 5 300 0 100 L 50 50 1 1 w
-ENDDRAW
-ENDDEF
-#
 # power_+3.3V
 #
 DEF power_+3.3V #PWR 0 0 Y Y 1 F P
@@ -294,6 +313,21 @@ X +3V3 1 0 0 0 U 50 50 1 1 W N
 ENDDRAW
 ENDDEF
 #
+# power_+4V
+#
+DEF power_+4V #PWR 0 0 Y Y 1 F P
+F0 "#PWR" 0 -150 50 H I C CNN
+F1 "power_+4V" 0 140 50 H V C CNN
+F2 "" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+DRAW
+P 2 0 1 0 -30 50 0 100 N
+P 2 0 1 0 0 0 0 100 N
+P 2 0 1 0 0 100 30 50 N
+X +4V 1 0 0 0 U 50 50 1 1 W N
+ENDDRAW
+ENDDEF
+#
 # power_GND
 #
 DEF power_GND #PWR 0 0 Y Y 1 F P
@@ -304,6 +338,19 @@ F3 "" 0 0 50 H I C CNN
 DRAW
 P 6 0 1 0 0 0 0 -50 50 -50 0 -100 -50 -50 0 -50 N
 X GND 1 0 0 0 D 50 50 1 1 W N
+ENDDRAW
+ENDDEF
+#
+# power_PWR_FLAG
+#
+DEF power_PWR_FLAG #FLG 0 0 N N 1 F P
+F0 "#FLG" 0 75 50 H I C CNN
+F1 "power_PWR_FLAG" 0 150 50 H V C CNN
+F2 "" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+DRAW
+P 6 0 1 0 0 0 0 50 -40 75 0 100 40 75 0 50 N
+X pwr 1 0 0 0 U 50 50 0 0 w
 ENDDRAW
 ENDDEF
 #
