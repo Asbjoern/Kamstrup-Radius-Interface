@@ -9,15 +9,21 @@
 #include <DNSServer.h>
 #include <FS.h>  
 #include <DoubleResetDetect.h>
+#include <WiFiClient.h>
+#include <PubSubClient.h>
 #include "gcm.h"
 #include "mbusparser.h"
 
+//#define DEBUG_BEGIN Serial1.begin(115200);
+//#define DEBUG_PRINT(x) Serial1.print(x);Log.push_back(x);sendmsg(String(mqtt_topic)+"/status",x);
+//#define DEBUG_PRINTLN(x) Serial1.println(x);Log.push_back(x);sendmsg(String(mqtt_topic)+"/status",x);
+
 #define DEBUG_BEGIN Serial.begin(115200);
-#define DEBUG_PRINT(x) Serial.print(x);Log.push_back(x);
-#define DEBUG_PRINTLN(x) Serial.println(x);Log.push_back(x);
+#define DEBUG_PRINT(x) Serial.print(x);Log.push_back(x);sendmsg(String(mqtt_topic)+"/status",x);
+#define DEBUG_PRINTLN(x) Serial.println(x);Log.push_back(x);sendmsg(String(mqtt_topic)+"/status",x);
 
 
-#define DRD_TIMEOUT 5.0
+#define DRD_TIMEOUT 1.0
 #define DRD_ADDRESS 0x00
 
 const size_t headersize = 11;
@@ -68,18 +74,23 @@ SPIFFSReadServer server(80);
 DNSServer dnsServer;
 PersWiFiManager persWM(server, dnsServer);
 
+WiFiClient espClient;
+PubSubClient psclient(espClient);
+
 void setup() {
+  //Serial.begin(2400, SERIAL_8N1);
+  //Serial.swap();
   DEBUG_BEGIN
   DEBUG_PRINTLN("")
   if (SPIFFS.begin()) 
     DEBUG_PRINTLN("Mounted file system");
   loadConfig();
 
-  if (drd.detect())
+  /*if (drd.detect())
   {
     DEBUG_PRINTLN("** Double reset boot. Ressetting WiFi settings **");
     persWM.resetSettings();
-  }
+  }*/
   
   WiFi.hostname(hostname);
   persWM.onConnect(&on_connect);
@@ -160,6 +171,8 @@ void setup() {
   DEBUG_PRINTLN("Setup complete.");
 }
 
+MbusStreamParser streamParser(receiveBuffer, sizeof(receiveBuffer));
+
 void loop() {
   if(Log.size()>LOGSIZE){
     std::rotate(Log.begin(),Log.end()-LOGSIZE,Log.end());
@@ -169,16 +182,35 @@ void loop() {
   dnsServer.processNextRequest();
   server.handleClient();
   
-  MbusStreamParser streamParser(receiveBuffer, sizeof(receiveBuffer));
+  if (!psclient.connected()) {
+    mqttReconnect();
+    for(auto msg : Log)
+      sendmsg(String(mqtt_topic)+"/status",msg);
+  }
+  psclient.loop();
+
+  /*WiFi.disconnect();
+  WiFi.forceSleepBegin();
+  delay(1); //For some reason the modem won't go to sleep unless you do a delay
+
+  WiFi.forceSleepWake();
+  delay(1);*/
+  
+  //while (Serial.available() > 0) {
   for(int i=0;i<sizeof(input);i++){
+    //if (streamParser.pushData(Serial.read())) {
     if (streamParser.pushData(input[i])) {
       VectorView frame = streamParser.getFrame();
       if (streamParser.getContentType() == MbusStreamParser::COMPLETE_FRAME) {
         DEBUG_PRINTLN("Frame complete");
         if(!decrypt(frame))
-          {DEBUG_PRINTLN("Decryption failed");}
+        {
+          DEBUG_PRINTLN("Decryption failed");
+          return;
+        }
         MeterData md = parseMbusFrame(decryptedFrame);
-        if (md.activePowerPlusValid) {
+        sendData(md);
+    /*    if (md.activePowerPlusValid) {
           DEBUG_PRINTLN("ActivePower: " + String(md.activePowerPlus));
         }
         if (md.voltageL1Valid) {
@@ -189,25 +221,92 @@ void loop() {
         }
         if (md.voltageL3Valid) {
           DEBUG_PRINTLN("Voltage L3: " + String(md.voltageL3));
-        }
+        }*/
       }
     }
   }
   delay(1000);
+}
 
+void sendData(MeterData md){
+   if (md.activePowerPlusValid) 
+    sendmsg(String(mqtt_topic)+"/power/activePowerPlus",String(md.activePowerPlus));
+   if (md.activePowerMinusValid) 
+    sendmsg(String(mqtt_topic)+"/power/activePowerMinus",String(md.activePowerMinus));
+   if (md.activePowerPlusValidL1) 
+    sendmsg(String(mqtt_topic)+"/power/activePowerPlusL1",String(md.activePowerPlusL1));
+   if (md.activePowerMinusValidL1) 
+    sendmsg(String(mqtt_topic)+"/power/activePowerMinusL1",String(md.activePowerMinusL1));
+   if (md.activePowerPlusValidL2) 
+    sendmsg(String(mqtt_topic)+"/power/activePowerPlusL2",String(md.activePowerPlusL2));
+   if (md.activePowerMinusValidL2) 
+    sendmsg(String(mqtt_topic)+"/power/activePowerMinusL2",String(md.activePowerMinusL2));
+   if (md.activePowerPlusValidL3) 
+    sendmsg(String(mqtt_topic)+"/power/activePowerPlusL3",String(md.activePowerPlusL3));
+   if (md.activePowerMinusValidL3) 
+    sendmsg(String(mqtt_topic)+"/power/activePowerMinusL3",String(md.activePowerMinusL3));
+   if (md.reactivePowerPlusValid) 
+    sendmsg(String(mqtt_topic)+"/power/reactivePowerPlus",String(md.reactivePowerPlus));
+   if (md.reactivePowerMinusValid) 
+    sendmsg(String(mqtt_topic)+"/power/reactivePowerMinus",String(md.reactivePowerMinus));
+
+   if (md.powerFactorValidL1) 
+    sendmsg(String(mqtt_topic)+"/power/powerFactorL1",String(md.powerFactorL1));
+   if (md.powerFactorValidL2) 
+    sendmsg(String(mqtt_topic)+"/power/powerFactorL2",String(md.powerFactorL2));
+   if (md.powerFactorValidL3) 
+    sendmsg(String(mqtt_topic)+"/power/powerFactorL3",String(md.powerFactorL3));
+   if (md.powerFactorTotalValid) 
+    sendmsg(String(mqtt_topic)+"/power/powerFactorTotal",String(md.powerFactorTotal));
+
+   if (md.voltageL1Valid) 
+    sendmsg(String(mqtt_topic)+"/voltage/L1",String(md.voltageL1));
+   if (md.voltageL2Valid) 
+    sendmsg(String(mqtt_topic)+"/voltage/L2",String(md.voltageL2));
+   if (md.voltageL3Valid) 
+    sendmsg(String(mqtt_topic)+"/voltage/L3",String(md.voltageL3));
+
+   if (md.centiAmpereL1Valid) 
+    sendmsg(String(mqtt_topic)+"/current/L1",String(md.centiAmpereL1/100.));
+   if (md.centiAmpereL2Valid) 
+    sendmsg(String(mqtt_topic)+"/current/L2",String(md.centiAmpereL2/100.));
+   if (md.centiAmpereL3Valid) 
+    sendmsg(String(mqtt_topic)+"/current/L3",String(md.centiAmpereL3/100.));
+
+   if (md.activeImportWhValid) 
+    sendmsg(String(mqtt_topic)+"/energy/activeImportKWh",String(md.activeImportWh/1000.));
+   if (md.activeExportWhValid) 
+    sendmsg(String(mqtt_topic)+"/energy/activeExportKWh",String(md.activeExportWh/1000.));
+   if (md.activeImportWhValidL1) 
+    sendmsg(String(mqtt_topic)+"/energy/activeImportKWhL1",String(md.activeImportWhL1/1000.));
+   if (md.activeExportWhValidL1) 
+    sendmsg(String(mqtt_topic)+"/energy/activeExportKWhL1",String(md.activeExportWhL1/1000.));
+   if (md.activeImportWhValidL2) 
+    sendmsg(String(mqtt_topic)+"/energy/activeImportKWhL2",String(md.activeImportWhL2/1000.));
+   if (md.activeExportWhValidL2) 
+    sendmsg(String(mqtt_topic)+"/energy/activeExportKWhL2",String(md.activeExportWhL2/1000.));
+   if (md.activeImportWhValidL3) 
+    sendmsg(String(mqtt_topic)+"/energy/activeImportKWhL3",String(md.activeImportWhL3/1000.));
+   if (md.activeExportWhValidL3) 
+    sendmsg(String(mqtt_topic)+"/energy/activeExportKWhL3",String(md.activeExportWhL3/1000.));
+
+   if (md.reactiveImportWhValid) 
+    sendmsg(String(mqtt_topic)+"/energy/reactiveImportKWh",String(md.reactiveImportWh/1000.));
+   if (md.reactiveExportWhValid) 
+    sendmsg(String(mqtt_topic)+"/energy/reactiveExportKWh",String(md.reactiveExportWh/1000.));
 }
 
 void on_connect() {
-    
   DEBUG_PRINTLN("Wifi connected");
   DEBUG_PRINTLN("Connect to http://"+String(hostname)+".local or http://" + WiFi.localIP().toString());
   EasySSDP::begin(server);
   if (MDNS.begin(hostname)) {
     DEBUG_PRINTLN("MDNS responder started");
-    MDNS.addService("http", "tcp", 80);
   } else {
     DEBUG_PRINTLN("Error setting up MDNS responder!");
   }
+  DEBUG_PRINTLN("Connecting to MQTT");
+   psclient.setServer(mqtt_server, atoi(mqtt_port));
 }
 
 void loadConfig(){
@@ -275,6 +374,19 @@ void saveConfig(){
   hexStr2bArr(encryption_key, conf_key, sizeof(encryption_key));
   hexStr2bArr(authentication_key, conf_authkey, sizeof(authentication_key));
   //todo: reload mqtt, mdns and other
+}
+
+void mqttReconnect() {
+  // Loop until we're reconnected
+  if (!psclient.connected()) {
+    DEBUG_PRINTLN("Attempting MQTT connection...");
+    // Attempt to connect
+    if (psclient.connect("arduinoClient")) {
+      DEBUG_PRINTLN("connected");
+    } else {
+      DEBUG_PRINTLN("failed, rc=" + String(psclient.state()));
+    }
+  }
 }
 
 void printHex(const unsigned char* data,const size_t length) {
@@ -349,4 +461,10 @@ void hexStr2bArr(uint8_t *dest, const char *source, int bytes_n)
         *dst++ = u;
         source += 2;
     }
+}
+
+void sendmsg(String topic, String payload) {
+  if(psclient.connected()){
+    psclient.publish(topic.c_str(),payload.c_str());
+  }
 }
