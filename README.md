@@ -20,10 +20,10 @@ Based on Python example provided by Radius.
 - [x] Proof of concept Python prototype (Meter to MQTT)
 - [x] Get decryption working
 - [x] Get parser working
-- [ ] Implement MQTT client
+- [x] Implement MQTT client
 - [x] Add persWifimanager configuration
 - [ ] Design power supply for limited current and voltage from meter. (Supercapacitor buffer?)
-- [ ] Read serial port and connect to meter
+- [x] Read serial port and connect to meter
 - [ ] Design PCB to specifications in *5512-2584_GB_A2_11-2019 OMNIPOWER HAN interface specification.pdf*
 - [ ] Implement functionality for status LED's on PCB
 - [ ] Design case for PCB to specifications in *5512-2584_GB_A2_11-2019 OMNIPOWER HAN interface specification.pdf*

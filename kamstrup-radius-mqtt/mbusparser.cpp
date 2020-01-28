@@ -161,8 +161,8 @@ MeterData parseMbusFrame(const VectorView& frame)
       result.activePowerPlusL2 = getPower(frame, ACTIVE_POWER_PLUS_L2, result.activePowerPlusValidL2);
       result.activePowerPlusL3 = getPower(frame, ACTIVE_POWER_PLUS_L3, result.activePowerPlusValidL3);
       result.activePowerMinusL1 = getPower(frame, ACTIVE_POWER_MINUS_L1, result.activePowerMinusValidL1);
-      result.activePowerMinusL2 = getPower(frame, ACTIVE_POWER_MINUS_L2, result.activePowerMinusValidL1);
-      result.activePowerMinusL3 = getPower(frame, ACTIVE_POWER_MINUS_L3, result.activePowerMinusValidL1);
+      result.activePowerMinusL2 = getPower(frame, ACTIVE_POWER_MINUS_L2, result.activePowerMinusValidL2);
+      result.activePowerMinusL3 = getPower(frame, ACTIVE_POWER_MINUS_L3, result.activePowerMinusValidL3);
       result.powerFactorL1 = getPower(frame, POWER_FACTOR_L1, result.powerFactorValidL1);
       result.powerFactorL2 = getPower(frame, POWER_FACTOR_L2, result.powerFactorValidL2);
       result.powerFactorL3 = getPower(frame, POWER_FACTOR_L3, result.powerFactorValidL3);
