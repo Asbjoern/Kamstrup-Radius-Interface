@@ -14,13 +14,13 @@
 #include "gcm.h"
 #include "mbusparser.h"
 
-//#define DEBUG_BEGIN Serial1.begin(115200);
-//#define DEBUG_PRINT(x) Serial1.print(x);Log.push_back(x);sendmsg(String(mqtt_topic)+"/status",x);
-//#define DEBUG_PRINTLN(x) Serial1.println(x);Log.push_back(x);sendmsg(String(mqtt_topic)+"/status",x);
+#define DEBUG_BEGIN Serial1.begin(115200);
+#define DEBUG_PRINT(x) Serial1.print(x);Log.push_back(x);sendmsg(String(mqtt_topic)+"/status",x);
+#define DEBUG_PRINTLN(x) Serial1.println(x);Log.push_back(x);sendmsg(String(mqtt_topic)+"/status",x);
 
-#define DEBUG_BEGIN Serial.begin(115200);
-#define DEBUG_PRINT(x) Serial.print(x);Log.push_back(x);sendmsg(String(mqtt_topic)+"/status",x);
-#define DEBUG_PRINTLN(x) Serial.println(x);Log.push_back(x);sendmsg(String(mqtt_topic)+"/status",x);
+//#define DEBUG_BEGIN Serial.begin(115200);
+//#define DEBUG_PRINT(x) Serial.print(x);Log.push_back(x);sendmsg(String(mqtt_topic)+"/status",x);
+//#define DEBUG_PRINTLN(x) Serial.println(x);Log.push_back(x);sendmsg(String(mqtt_topic)+"/status",x);
 
 
 #define DRD_TIMEOUT 1.0
@@ -35,8 +35,8 @@ char mqtt_uid[40];
 char mqtt_pwd[40];
 char mqtt_topic[40]="kamstrup";
 char hostname[40] ="KamstrupMQTT";
-char conf_key[] =     "5AD84121D9D20B364B7A11F3C1B5827F";
-char conf_authkey[] = "AFB3F93E3E7204EDB3C27F96DBD51AE0";
+char conf_key[32];// =     "5AD84121D9D20B364B7A11F3C1B5827F";
+char conf_authkey[32];// = "AFB3F93E3E7204EDB3C27F96DBD51AE0";
 
 uint8_t encryption_key[16];
 uint8_t authentication_key[16];
