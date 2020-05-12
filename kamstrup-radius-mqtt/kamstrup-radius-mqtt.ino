@@ -35,8 +35,6 @@ char mqtt_uid[40];
 char mqtt_pwd[40];
 char mqtt_topic[40]="kamstrup";
 char hostname[40] ="KamstrupMQTT";
-char conf_key[32];// =     "5AD84121D9D20B364B7A11F3C1B5827F";
-char conf_authkey[32];// = "AFB3F93E3E7204EDB3C27F96DBD51AE0";
 
 uint8_t encryption_key[16];
 uint8_t authentication_key[16];
@@ -181,6 +179,7 @@ void loop() {
   persWM.handleWiFi();
   dnsServer.processNextRequest();
   server.handleClient();
+  MDNS.update();
   
   if (!psclient.connected()) {
     mqttReconnect();
@@ -293,8 +292,9 @@ void on_connect() {
   } else {
     DEBUG_PRINTLN("Error setting up MDNS responder!");
   }
+  MDNS.addService("http", "tcp", 80);
   DEBUG_PRINTLN("Connecting to MQTT");
-   psclient.setServer(mqtt_server, atoi(mqtt_port));
+  psclient.setServer(mqtt_server, atoi(mqtt_port));
 }
 
 void loadConfig(){
