@@ -181,6 +181,7 @@ void loop() {
   persWM.handleWiFi();
   dnsServer.processNextRequest();
   server.handleClient();
+  MDNS.update();
   
   if (!psclient.connected()) {
     mqttReconnect();
@@ -293,8 +294,9 @@ void on_connect() {
   } else {
     DEBUG_PRINTLN("Error setting up MDNS responder!");
   }
+  MDNS.addService("http", "tcp", 80);
   DEBUG_PRINTLN("Connecting to MQTT");
-   psclient.setServer(mqtt_server, atoi(mqtt_port));
+  psclient.setServer(mqtt_server, atoi(mqtt_port));
 }
 
 void loadConfig(){
