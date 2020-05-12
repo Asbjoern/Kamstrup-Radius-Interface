@@ -35,8 +35,8 @@ char mqtt_uid[40];
 char mqtt_pwd[40];
 char mqtt_topic[40]="kamstrup";
 char hostname[40] ="KamstrupMQTT";
-char conf_key[32];// =     "5AD84121D9D20B364B7A11F3C1B5827F";
-char conf_authkey[32];// = "AFB3F93E3E7204EDB3C27F96DBD51AE0";
+char conf_key[33];// =     "5AD84121D9D20B364B7A11F3C1B5827F";
+char conf_authkey[33];// = "AFB3F93E3E7204EDB3C27F96DBD51AE0";
 
 uint8_t encryption_key[16];
 uint8_t authentication_key[16];

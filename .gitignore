@@ -4,3 +4,15 @@ pcb/HANmodule-rescue.dcm
 pcb/HANmodule-rescue.lib
 pcb/HANmodule.kicad_pcb-bak
 pcb/HANmodule.sch-bak
+pcb/gerber.zip
+pcb/gerber/HANmodule-B_Cu.gbr
+pcb/gerber/HANmodule-B_Mask.gbr
+pcb/gerber/HANmodule-B_Paste.gbr
+pcb/gerber/HANmodule-B_SilkS.gbr
+pcb/gerber/HANmodule-Edge_Cuts.gbr
+pcb/gerber/HANmodule-F_Cu.gbr
+pcb/gerber/HANmodule-F_Mask.gbr
+pcb/gerber/HANmodule-F_Paste.gbr
+pcb/gerber/HANmodule-F_SilkS.gbr
+pcb/gerber/HANmodule-NPTH.drl
+pcb/gerber/HANmodule-PTH.drl
