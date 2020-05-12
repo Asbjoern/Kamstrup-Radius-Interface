@@ -201,6 +201,8 @@ F 3 "" H 725 1150 50  0001 C CNN
 	1    725  1150
 	1    0    0    -1  
 $EndComp
+Text Label 1050 2100 0    50   ~ 0
+DIN
 $Comp
 L power:GND #PWR02
 U 1 1 5E2C1111
@@ -1008,6 +1010,17 @@ Text Label 850  1550 2    50   ~ 0
 DIN
 Wire Wire Line
 	1875 3375 2225 3375
+$Comp
+L power:GND #PWR?
+U 1 1 5E42056B
+P 2200 2200
+F 0 "#PWR?" H 2200 1950 50  0001 C CNN
+F 1 "GND" H 2205 2027 50  0000 C CNN
+F 2 "" H 2200 2200 50  0001 C CNN
+F 3 "" H 2200 2200 50  0001 C CNN
+	1    2200 2200
+	1    0    0    -1  
+$EndComp
 Wire Wire Line
 	4625 1325 4800 1325
 Wire Wire Line
