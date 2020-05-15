@@ -31,12 +31,13 @@ const size_t footersize = 3;
 
 char mqtt_server[40];
 char mqtt_port[6] = "1883";
-char mqtt_uid[40];
-char mqtt_pwd[40];
+char mqtt_uid[40] = "";
+char mqtt_pwd[40] = "";
 char mqtt_topic[40]="kamstrup";
 char hostname[40] ="KamstrupMQTT";
 char conf_key[33];// =     "5AD84121D9D20B364B7A11F3C1B5827F";
 char conf_authkey[33];// = "AFB3F93E3E7204EDB3C27F96DBD51AE0";
+bool isAP=true;
 
 uint8_t encryption_key[16];
 uint8_t authentication_key[16];
@@ -183,7 +184,7 @@ void loop() {
   server.handleClient();
   MDNS.update();
   
-  if (!psclient.connected()) {
+  if (!psclient.connected() && !isAP && mqtt_server[0]!='\0') {
     mqttReconnect();
     for(auto msg : Log)
       sendmsg(String(mqtt_topic)+"/status",msg);
@@ -288,6 +289,7 @@ void sendData(MeterData md){
 void on_connect() {
   DEBUG_PRINTLN("Wifi connected");
   DEBUG_PRINTLN("Connect to http://"+String(hostname)+".local or http://" + WiFi.localIP().toString());
+  isAP = false;
   EasySSDP::begin(server);
   if (MDNS.begin(hostname)) {
     DEBUG_PRINTLN("MDNS responder started");
@@ -371,7 +373,9 @@ void mqttReconnect() {
   if (!psclient.connected()) {
     DEBUG_PRINTLN("Attempting MQTT connection...");
     // Attempt to connect
-    if (psclient.connect(hostname,mqtt_uid,mqtt_pwd)) {
+    if (psclient.connect(hostname,
+     (mqtt_uid[0]=='\0')?NULL:mqtt_uid,
+     (mqtt_pwd[0]=='\0')?NULL:mqtt_pwd)) {
       DEBUG_PRINTLN("connected");
     } else {
       DEBUG_PRINTLN("failed, rc=" + String(psclient.state()));
