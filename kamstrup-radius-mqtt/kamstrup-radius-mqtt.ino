@@ -371,7 +371,7 @@ void mqttReconnect() {
   if (!psclient.connected()) {
     DEBUG_PRINTLN("Attempting MQTT connection...");
     // Attempt to connect
-    if (psclient.connect("arduinoClient")) {
+    if (psclient.connect(hostname,mqtt_uid,mqtt_pwd)) {
       DEBUG_PRINTLN("connected");
     } else {
       DEBUG_PRINTLN("failed, rc=" + String(psclient.state()));
