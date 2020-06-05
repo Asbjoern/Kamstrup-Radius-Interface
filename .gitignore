@@ -16,3 +16,7 @@ pcb/gerber/HANmodule-F_Paste.gbr
 pcb/gerber/HANmodule-F_SilkS.gbr
 pcb/gerber/HANmodule-NPTH.drl
 pcb/gerber/HANmodule-PTH.drl
+kamstrup-radius-mqtt/.DS_Store
+pcb/gerber/.DS_Store
+pcb/.DS_Store
+.DS_Store
