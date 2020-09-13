@@ -1,4 +1,4 @@
-18741195973657479
+18749184604310479
 Battery
 BatteryHolder_Bulgin_BX0036_1xC
 Bulgin Battery Holder, BX0036, Battery Type C (https://www.bulgin.com/products/pub/media/bulgin/data/Battery_holders.pdf)
@@ -82460,6 +82460,13 @@ SMT capacitor, aluminium electrolytic, 10x10.5
 2
 2
 housings
+c_sup 17,3x15x8.5P12
+
+
+0
+2
+2
+housings
 i4-Pac
 
 
@@ -82509,6 +82516,13 @@ DYS_BLHeli
 12
 7
 modules
+E75-2G4Mx0S
+
+
+0
+27
+27
+modules
 ESP-03
 
 
@@ -82522,6 +82536,13 @@ ESP-12E
 0
 22
 22
+modules
+ESP32-WROVER
+
+
+0
+64
+39
 modules
 ICC-1_POLY_PCB2.0
 https://fccid.io/FHO-ICC-1/User-Manual/User-Manual-3055710.pdf
@@ -82543,6 +82564,20 @@ MP1584module
 0
 4
 3
+modules
+Mini360_pin
+
+
+0
+4
+4
+modules
+Mini360_smd
+
+
+0
+4
+4
 modules
 TM022HDH26
 
